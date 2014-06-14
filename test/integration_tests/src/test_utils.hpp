@@ -2,6 +2,7 @@
 
 #include <string>
 #include <chrono>
+#include <sstream>
 
 #include <boost/asio/ip/address.hpp>
 #include <boost/shared_ptr.hpp>
@@ -427,7 +428,27 @@ inline CassInet inet_v4_from_int(int32_t address) {
   inet.address_length = sizeof(int32_t);
   return inet;
 }
+    
+inline CassInet inet_v4_from_string(const std::string& address_string) {
+  // Pragmatic, not the smartest way tdi.
+  std::istringstream sstr(address_string);
+  int a, b, c, d;
+  char dummy;
+  sstr >> a >> dummy >> b >> dummy >> c >> dummy >> d;
+  uint8_t address_bytes[CASS_INET_V4_LENGTH] = {(uint8_t)a, (uint8_t)b, (uint8_t)c, (uint8_t)d};
+  return cass_inet_init_v4(address_bytes);
+}
 
+inline std::string inet_v4_to_string(const CassInet& inet) {
+// Pragmatic, not the smartest way tdi.
+  std::ostringstream osstr;
+  osstr << (unsigned int)(inet.address[0]) << '.'
+        << (unsigned int)(inet.address[1]) << '.'
+        << (unsigned int)(inet.address[2]) << '.'
+        << (unsigned int)(inet.address[3]);
+  return osstr.str();
+}
+    
 inline CassDecimal decimal_from_scale_and_bytes(cass_int32_t scale, CassBytes bytes) {
   CassDecimal decimal;
   decimal.scale = scale;
