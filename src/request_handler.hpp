@@ -64,6 +64,12 @@ class RequestHandler : public ResponseCallback {
       switch(response->opcode) {
         case CQL_OPCODE_RESULT:
           future_->set_result(response->body.release());
+          {
+            std::unique_ptr<Host> responder(new Host());
+            if(get_current_host(responder.get())) {
+              future_->set_client(responder.get());
+            }
+          }
           break;
         case CQL_OPCODE_ERROR: {
           ErrorResponse* error = static_cast<ErrorResponse*>(response->body.get());
@@ -76,7 +82,7 @@ class RequestHandler : public ResponseCallback {
           future_->set_error(CASS_ERROR_LIB_UNEXPECTED_RESPONSE, "Unexpected response");
           break;
       }
-      notify_finished();;
+      notify_finished();
     }
 
     virtual void on_error(CassError code, const std::string& message) {

@@ -154,6 +154,10 @@ class ResultFuture : public Future {
         result_.reset(result);
       });
     }
+    
+    void set_client(const Host* sender) {
+      client_.reset(new Host(*sender));
+    }
 
     T* release_result() {
       std::unique_lock<std::mutex> lock(mutex_);
@@ -164,7 +168,8 @@ class ResultFuture : public Future {
     }
 
   private:
-     std::unique_ptr<T> result_;
+     std::unique_ptr<T>    result_;
+     std::unique_ptr<Host> client_;
 };
 
 } // namespace cass

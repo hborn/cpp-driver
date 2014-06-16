@@ -28,6 +28,9 @@ struct Host {
 
   Host(const Address& address)
     : address(address) { }
+
+  Host(const Host& host)
+    : address(host.address) { }
 };
 
 inline bool operator<(const Host& a, const Host& b) {
