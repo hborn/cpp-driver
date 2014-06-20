@@ -510,6 +510,17 @@ cass_future_error_code(CassFuture* future);
  */
 CASS_EXPORT CassString
 cass_future_error_message(CassFuture* future);
+    
+/**
+ * Gets the address of queried endpoint (applies only to result futures).
+ *
+ * @param[in] future
+ * @param[out] output
+ * @return Returns true if successful, false otherwise (e.g. if not applicable).
+ */
+CASS_EXPORT cass_bool_t
+cass_future_get_client(const CassFuture* future,
+                       CassInet* output);
 
 /***********************************************************************************
  *

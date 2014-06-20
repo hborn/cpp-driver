@@ -101,5 +101,9 @@ CassString cass_future_error_message(CassFuture* future) {
   return str;
 }
 
+cass_bool_t cass_future_get_client(const CassFuture* future, CassInet* output) {
+    return future->get_client(output) ? cass_true : cass_false;
+}
+    
 } // extern "C"
 

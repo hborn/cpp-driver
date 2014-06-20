@@ -28,31 +28,22 @@ BOOST_FIXTURE_TEST_SUITE(load_balancing_tests, LBTests)
 
 BOOST_AUTO_TEST_CASE(test_round_robin)
 {
-  // TODO: AFAIK, the new API provides no way to retrieve the target endpoint from query result.
-  // It should be implemented prior to running this test.
-  BOOST_FAIL("Unimplemented");
-  
   test_utils::CassFuturePtr session_future(cass_cluster_connect(cluster));
   test_utils::wait_and_check_error(session_future.get());
   test_utils::CassSessionPtr session(cass_future_get_session(session_future.get()));
-
-  test_utils::execute_query(session.get(), str(boost::format(test_utils::CREATE_KEYSPACE_SIMPLE_FORMAT)
-                                         % test_utils::SIMPLE_KEYSPACE % "1"));
-
-  test_utils::execute_query(session.get(), str(boost::format("USE %s") % test_utils::SIMPLE_KEYSPACE));
   
   policy_tool pt;
   pt.create_schema(session.get(), 1);
   
   pt.init(session.get(), 12, CASS_CONSISTENCY_ONE);
   pt.query(session.get(), 12, CASS_CONSISTENCY_ONE);
-  
+
   CassInet host1 = test_utils::inet_v4_from_string(conf.ip_prefix() + "1");
   CassInet host2 = test_utils::inet_v4_from_string(conf.ip_prefix() + "2");
   
   pt.assertQueried(host1, 6);
   pt.assertQueried(host2, 6);
-  
+
   pt.reset_coordinators();
   ccm->bootstrap(3);
   

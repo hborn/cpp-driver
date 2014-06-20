@@ -108,6 +108,10 @@ class Future : public RefCounted<Future> {
       }
       return error_.get();
     }
+    
+    virtual bool get_client(CassInet*) const {
+        return nullptr;
+    }
 
     void set() {
       set([]() { }); // NOP set
@@ -157,6 +161,23 @@ class ResultFuture : public Future {
     
     void set_client(const Host* sender) {
       client_.reset(new Host(*sender));
+    }
+    
+    bool get_client(CassInet* output) const {
+    // Note: at the moment layout of CassInet is not specified to correspond to the one of sin_addr.
+      if (client_) {
+          if (client_->address.family() == AF_INET) {
+              output->address_length = CASS_INET_V4_LENGTH;
+              memcpy(output->address, &(client_->address.addr_in()->sin_addr), output->address_length);
+              return true;
+          }
+          else if (client_->address.family() == AF_INET6) {
+              output->address_length = CASS_INET_V6_LENGTH;
+              memcpy(output->address, &(client_->address.addr_in6()->sin6_addr), output->address_length);
+              return true;
+          }
+      }
+      return false;
     }
 
     T* release_result() {

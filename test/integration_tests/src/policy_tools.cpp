@@ -99,14 +99,15 @@ policy_tool::query(
 {
     for (int i = 0; i < n; ++i)
     {
-        test_utils::CassResultPtr result;
-        test_utils::execute_query(session,
-                                  str(boost::format("SELECT * FROM %s WHERE k = 0") % test_utils::SIMPLE_TABLE),
-                                  &result,
-                                  cl);
+        test_utils::CassStatementPtr statement(cass_statement_new(
+                                                      cass_string_init(str(boost::format("SELECT * FROM %s WHERE k = 0") % test_utils::SIMPLE_TABLE).c_str()),
+                                                      0, cl));
+        test_utils::CassFuturePtr future(cass_session_execute(session, statement.get()));
+        test_utils::wait_and_check_error(future.get());
         
-        // TODO: no such functionality in New API.
-        // add_coordinator(query_result.client->endpoint().address());
+        CassInet sender;
+        cass_future_get_client(future.get(), &sender);
+        add_coordinator(sender);
     }
     return 0;
 }
