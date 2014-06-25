@@ -105,4 +105,8 @@ CassString cass_future_error_message(CassFuture* future) {
   return str;
 }
 
+void cass_future_callback_when_ready(CassFuture* future, void (*callback)(void*), void* userdata) {
+  future->set_callback(std::function<void(void*)>(callback), userdata);
+}
+
 } // extern "C"

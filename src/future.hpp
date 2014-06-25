@@ -71,7 +71,8 @@ public:
 
   Future(FutureType type)
       : is_set_(false)
-      , type_(type) {}
+      , type_(type) 
+      , userdata_(nullptr) {}
 
   virtual ~Future(){};
 
@@ -108,6 +109,17 @@ public:
     set([]() {}); // NOP set
   }
 
+  void set_callback(const std::function<void(void*)>& callback, void* userdata) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (is_set_){
+      lock.unlock();
+      callback(userdata);
+    } else {
+      callback_ = callback;
+      userdata_ = userdata;
+    }
+  }
+
   void set_error(CassError code, const std::string& message) {
     set([this, code, message]() { error_.reset(new Error(code, message)); });
   }
@@ -119,7 +131,14 @@ protected:
     s();
     is_set_ = true;
     cond_.notify_all();
+    std::function<void(void*)> callback;
+    callback.swap(callback_);
+    void* userdata = nullptr;
+    std::swap(userdata_, userdata);
     lock.unlock();
+    if (callback) {
+      callback(userdata);
+    }
     release();
   }
 
@@ -130,6 +149,8 @@ protected:
 private:
   FutureType type_;
   std::unique_ptr<Error> error_;
+  std::function<void(void*)> callback_;
+  void* userdata_;
 };
 
 template <class T>

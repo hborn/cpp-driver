@@ -453,6 +453,17 @@ cass_future_wait_timed(CassFuture* future,
                        cass_duration_t timeout);
 
 /**
+* Register a callback to be called when the future is set.
+* If the future is already set when called, the callback gets called immediately
+* 
+* @param[in] future
+* @param[in] userdata to pass to the callback
+*/
+CASS_EXPORT void
+cass_future_callback_when_ready(CassFuture* future, void(*callback)(void*),
+                                void* userdata);
+
+/**
  * Gets the result of a successful future. If the future is not ready this method will
  * wait for the future to be set. The first successful call consumes the future, all
  * subsequent calls will return NULL.
